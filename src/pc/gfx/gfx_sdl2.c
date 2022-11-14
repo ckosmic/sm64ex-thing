@@ -16,6 +16,8 @@
 #include <SDL2/SDL.h>
 #define GL_GLEXT_PROTOTYPES 1
 
+//#include <GLES/egl.h>
+
 #ifdef OSX_BUILD
 #include <SDL2/SDL_opengl.h>
 #else
@@ -151,7 +153,9 @@ static void gfx_sdl_reset_dimension_and_pos(void) {
 }
 
 static void gfx_sdl_init(const char *window_title) {
-    SDL_Init(SDL_INIT_VIDEO);
+    if(SDL_Init(SDL_INIT_VIDEO) < 0) {
+        fprintf(stderr, "Failed to init SDL: %s\n", SDL_GetError());
+    }
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);

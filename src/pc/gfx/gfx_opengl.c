@@ -400,6 +400,9 @@ static struct ShaderProgram *gfx_opengl_create_and_load_new_shader(uint32_t shad
     const GLint lengths[2] = { vs_len, fs_len };
     GLint success;
 
+    char* str = (char*)glGetString(GL_VERSION);
+    fprintf(stderr, "%s\n", str);
+
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &sources[0], &lengths[0]);
     glCompileShader(vertex_shader);
@@ -410,7 +413,7 @@ static struct ShaderProgram *gfx_opengl_create_and_load_new_shader(uint32_t shad
         char error_log[1024];
         fprintf(stderr, "Vertex shader compilation failed\n");
         glGetShaderInfoLog(vertex_shader, max_length, &max_length, &error_log[0]);
-        fprintf(stderr, "%s\n", &error_log[0]);
+        fprintf(stderr, "%s\n", error_log);
         sys_fatal("vertex shader compilation failed (see terminal)");
     }
 

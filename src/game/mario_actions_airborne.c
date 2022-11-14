@@ -2118,6 +2118,8 @@ s32 mario_execute_airborne_action(struct MarioState *m) {
         return TRUE;
     }
 
+    m->intendedYaw = (s16) m->faceAngle[1];
+
     play_far_fall_sound(m);
 
     /* clang-format off */

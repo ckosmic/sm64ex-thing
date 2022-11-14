@@ -24,6 +24,8 @@ NON_MATCHING ?= 1
 # Build and optimize for Raspberry Pi(s)
 TARGET_RPI ?= 0
 
+TARGET_CT ?= 0
+
 # Build for Emscripten/WebGL
 TARGET_WEB ?= 0
 
@@ -93,6 +95,13 @@ ifeq ($(TARGET_WEB),0)
   ifeq ($(HOST_OS),Windows)
     WINDOWS_BUILD := 1
   endif
+endif
+
+ifeq ($(TARGET_CT),1)
+  TARGET_RPI := 1
+  CC := gcc
+  CXX := g++
+  CPP := cpp
 endif
 
 # MXE overrides
@@ -300,6 +309,10 @@ EXE := $(BUILD_DIR)/$(TARGET).html
 		else
 			EXE := $(BUILD_DIR)/$(TARGET)
 		endif
+    ifeq ($(TARGET_CT), 1)
+      TARGET := sm64
+      EXE := $(BUILD_DIR)/$(TARGET)
+    endif
 	endif
 endif
 
@@ -345,7 +358,9 @@ ifeq ($(TARGET_WEB),1)
   OPT_FLAGS := -O2 -g4 --source-map-base http://localhost:8080/
 endif
 
-ifeq ($(TARGET_RPI),1)
+ifeq ($(TARGET_CT),1)
+  OPT_FLAGS := -mfloat-abi=hard -march=armv8-a+simd -mtune=cortex-a35 -O3
+else ifeq ($(TARGET_RPI),1)
 	machine = $(shell sh -c 'uname -m 2>/dev/null || echo unknown')
 # Raspberry Pi B+, Zero, etc
 	ifneq (,$(findstring armv6l,$(machine)))
@@ -527,7 +542,7 @@ else ifeq ($(findstring SDL,$(WINDOW_API)),SDL)
   ifeq ($(WINDOWS_BUILD),1)
     BACKEND_LDFLAGS += -lglew32 -lglu32 -lopengl32
   else ifeq ($(TARGET_RPI),1)
-    BACKEND_LDFLAGS += -lGLESv2
+    BACKEND_LDFLAGS += -lGLESv2 -lX11
   else ifeq ($(OSX_BUILD),1)
     BACKEND_LDFLAGS += -framework OpenGL $(shell pkg-config --libs glew)
   else
@@ -558,17 +573,22 @@ else ifeq ($(SDL1_USED),1)
 endif
 
 ifneq ($(SDL1_USED)$(SDL2_USED),00)
-  ifeq ($(OSX_BUILD),1)
-    # on OSX at least the homebrew version of sdl-config gives include path as `.../include/SDL2` instead of `.../include`
-    OSX_PREFIX := $(shell $(SDLCONFIG) --prefix)
-    BACKEND_CFLAGS += -I$(OSX_PREFIX)/include $(shell $(SDLCONFIG) --cflags)
+  ifeq ($(TARGET_CT),1)
+    BACKEND_CFLAGS += -I$(SYSROOT)/usr/include
+    BACKEND_LDFLAGS += -lSDL2
   else
-    BACKEND_CFLAGS += $(shell $(SDLCONFIG) --cflags)
-  endif
-  ifeq ($(WINDOWS_BUILD),1)
-    BACKEND_LDFLAGS += $(shell $(SDLCONFIG) --static-libs) -lsetupapi -luser32 -limm32 -lole32 -loleaut32 -lshell32 -lwinmm -lversion
-  else
-    BACKEND_LDFLAGS += $(shell $(SDLCONFIG) --libs)
+    ifeq ($(OSX_BUILD),1)
+      # on OSX at least the homebrew version of sdl-config gives include path as `.../include/SDL2` instead of `.../include`
+      OSX_PREFIX := $(shell $(SDLCONFIG) --prefix)
+      BACKEND_CFLAGS += -I$(OSX_PREFIX)/include $(shell $(SDLCONFIG) --cflags)
+    else
+      BACKEND_CFLAGS += $(shell $(SDLCONFIG) --cflags)
+    endif
+    ifeq ($(WINDOWS_BUILD),1)
+      BACKEND_LDFLAGS += $(shell $(SDLCONFIG) --static-libs) -lsetupapi -luser32 -limm32 -lole32 -loleaut32 -lshell32 -lwinmm -lversion
+    else
+      BACKEND_LDFLAGS += $(shell $(SDLCONFIG) --libs)
+    endif
   endif
 endif
 

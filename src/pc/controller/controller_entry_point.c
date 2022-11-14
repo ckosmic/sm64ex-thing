@@ -7,16 +7,18 @@
 #include "controller_recorded_tas.h"
 #include "controller_keyboard.h"
 #include "controller_sdl.h"
+#include "controller_carthing.h"
 
 // Analog camera movement by Pathétique (github.com/vrmiguel), y0shin and Mors
 // Contribute or communicate bugs at github.com/vrmiguel/sm64-analog-camera
 
 static struct ControllerAPI *controller_implementations[] = {
-    &controller_recorded_tas,
-    #if defined(CAPI_SDL2) || defined(CAPI_SDL1)
-    &controller_sdl,
-    #endif
-    &controller_keyboard,
+    //&controller_recorded_tas,
+    //#if defined(CAPI_SDL2) || defined(CAPI_SDL1)
+    //&controller_sdl,
+    //#endif
+    //&controller_keyboard,
+    &controller_carthing
 };
 
 s32 osContInit(UNUSED OSMesgQueue *mq, u8 *controllerBits, UNUSED OSContStatus *status) {

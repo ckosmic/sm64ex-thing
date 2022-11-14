@@ -400,6 +400,7 @@ s32 act_reading_npc_dialog(struct MarioState *m) {
         angleToNPC = mario_obj_angle_to_object(m, m->usedObj);
         m->faceAngle[1] =
             angleToNPC - approach_s32((angleToNPC - m->faceAngle[1]) << 16 >> 16, 0, 2048, 2048);
+        m->intendedYaw = m->faceAngle[1];
         // turn head to npc
         m->actionTimer += headTurnAmount;
         // set animation
@@ -519,6 +520,7 @@ s32 act_reading_sign(struct MarioState *m) {
         // turn toward sign
         case 1:
             m->faceAngle[1] += marioObj->oMarioPoleUnk108 / 11;
+            m->intendedYaw = m->faceAngle[1];
             m->pos[0] += marioObj->oMarioReadingSignDPosX / 11.0f;
             m->pos[2] += marioObj->oMarioReadingSignDPosZ / 11.0f;
             // create the text box
@@ -650,6 +652,7 @@ void general_star_dance_handler(struct MarioState *m, s32 isInWater) {
 
 s32 act_star_dance(struct MarioState *m) {
     m->faceAngle[1] = m->area->camera->yaw;
+    m->intendedYaw = m->faceAngle[1];
     set_mario_animation(m, m->actionState == 2 ? MARIO_ANIM_RETURN_FROM_STAR_DANCE
                                                : MARIO_ANIM_STAR_DANCE);
     general_star_dance_handler(m, 0);
@@ -662,6 +665,7 @@ s32 act_star_dance(struct MarioState *m) {
 
 s32 act_star_dance_water(struct MarioState *m) {
     m->faceAngle[1] = m->area->camera->yaw;
+    m->intendedYaw = m->faceAngle[1];
     set_mario_animation(m, m->actionState == 2 ? MARIO_ANIM_RETURN_FROM_WATER_STAR_DANCE
                                                : MARIO_ANIM_WATER_STAR_DANCE);
     vec3f_copy(m->marioObj->header.gfx.pos, m->pos);
@@ -786,12 +790,14 @@ s32 launch_mario_until_land(struct MarioState *m, s32 endAction, s32 animation, 
 
 s32 act_unlocking_key_door(struct MarioState *m) {
     m->faceAngle[1] = m->usedObj->oMoveAngleYaw;
+    m->intendedYaw = m->faceAngle[1];
 
     m->pos[0] = m->usedObj->oPosX + coss(m->faceAngle[1]) * 75.0f;
     m->pos[2] = m->usedObj->oPosZ + sins(m->faceAngle[1]) * 75.0f;
 
     if (m->actionArg & 2) {
         m->faceAngle[1] += 0x8000;
+        m->intendedYaw = m->faceAngle[1];
     }
 
     if (m->actionTimer == 0) {
@@ -830,8 +836,10 @@ s32 act_unlocking_star_door(struct MarioState *m) {
     switch (m->actionState) {
         case 0:
             m->faceAngle[1] = m->usedObj->oMoveAngleYaw;
+            m->intendedYaw = m->faceAngle[1];
             if (m->actionArg & 2) {
                 m->faceAngle[1] += 0x8000;
+                m->intendedYaw = m->faceAngle[1];
             }
             m->marioObj->oMarioReadingSignDPosX = m->pos[0];
             m->marioObj->oMarioReadingSignDPosZ = m->pos[2];
@@ -892,6 +900,7 @@ s32 act_entering_star_door(struct MarioState *m) {
         m->marioObj->oMarioReadingSignDPosZ = targetDZ / 20.0f;
 
         m->faceAngle[1] = atan2s(targetDZ, targetDX);
+        m->intendedYaw = m->faceAngle[1];
     }
 
     // set Mario's animation
@@ -909,9 +918,11 @@ s32 act_entering_star_door(struct MarioState *m) {
 
     else {
         m->faceAngle[1] = m->usedObj->oMoveAngleYaw;
+        m->intendedYaw = m->faceAngle[1];
 
         if (m->actionArg & 2) {
             m->faceAngle[1] += 0x8000;
+            m->intendedYaw = m->faceAngle[1];
         }
 
         m->pos[0] += 12.0f * sins(m->faceAngle[1]);
@@ -940,6 +951,7 @@ s32 act_going_through_door(struct MarioState *m) {
         }
     }
     m->faceAngle[1] = m->usedObj->oMoveAngleYaw;
+    m->intendedYaw = m->faceAngle[1];
     m->pos[0] = m->usedObj->oPosX;
     m->pos[2] = m->usedObj->oPosZ;
 
@@ -954,6 +966,7 @@ s32 act_going_through_door(struct MarioState *m) {
         if (is_anim_at_end(m)) {
             if (m->actionArg & 2) {
                 m->faceAngle[1] += 0x8000;
+                m->intendedYaw = m->faceAngle[1];
             }
             set_mario_action(m, ACT_IDLE, 0);
         }
@@ -1045,6 +1058,7 @@ s32 act_spawn_spin_airborne(struct MarioState *m) {
 s32 act_spawn_spin_landing(struct MarioState *m) {
     stop_and_set_height_to_floor(m);
     set_mario_animation(m, MARIO_ANIM_GENERAL_LAND);
+    m->intendedYaw = m->faceAngle[1];
     if (is_anim_at_end(m)) {
         load_level_init_text(0);
         set_mario_action(m, ACT_IDLE, 0);

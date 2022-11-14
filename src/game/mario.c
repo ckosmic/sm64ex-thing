@@ -1325,19 +1325,26 @@ void update_mario_joystick_inputs(struct MarioState *m) {
         m->intendedMag = mag / 8.0f;
     }
 
+    if (abs(controller->stickY) > 0) {
+        m->input |= INPUT_NONZERO_ANALOG;
+    }
+
     if (m->intendedMag > 0.0f) {
 #ifndef BETTERCAMERA
-        m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
+        //m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
 #else
         if (gLakituState.mode != CAMERA_MODE_NEWCAM)
-            m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
+            //m->intendedYaw = atan2s(-controller->stickY, controller->stickX) + m->area->camera->yaw;
         else
-            m->intendedYaw = atan2s(-controller->stickY, controller->stickX)-newcam_yaw+0x4000;
+            //m->intendedYaw = atan2s(-controller->stickY, controller->stickX)-newcam_yaw+0x4000;
 #endif
-        m->input |= INPUT_NONZERO_ANALOG;
+        //m->input |= INPUT_NONZERO_ANALOG;
     } else {
-        m->intendedYaw = m->faceAngle[1];
+        //m->intendedYaw = m->faceAngle[1];
     }
+    m->wheelRot -= controller->stickX * 64;
+    m->intendedYaw -= controller->stickX * 64;
+    //m->faceAngle[1] -= controller->stickX * 64;
 }
 
 /**
